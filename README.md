@@ -42,6 +42,12 @@ worklog stop
 worklog status
 ```
 
+### Reset (discard) the current activity
+
+```bash
+worklog reset
+```
+
 ### Generate reports
 
 ```bash

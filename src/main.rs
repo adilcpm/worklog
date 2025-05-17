@@ -41,6 +41,8 @@ enum Commands {
     Stop,
     /// Show current activity status
     Status,
+    /// Reset (discard) the current activity without logging it
+    Reset,
     /// Show a report – default: daily
     Report {
         #[arg(value_parser = ["daily", "weekly", "monthly"], default_value = "daily")]
@@ -102,6 +104,18 @@ fn cmd_status() {
     }
 }
 
+fn cmd_reset() {
+    let mut log = load_log();
+    match log.iter().position(|s| s.end.is_none()) {
+        Some(pos) => {
+            let session = log.remove(pos);
+            save_log(&log);
+            println!("Reset session: {}", session.tag);
+        }
+        None => println!("No active session to reset."),
+    }
+}
+
 fn within_period(ts: i64, period: &str) -> bool {
     let dt = Utc.timestamp_opt(ts, 0).single().unwrap();
     let now = Utc::now();
@@ -155,6 +169,7 @@ fn main() {
         Commands::Start { tag } => cmd_start(tag),
         Commands::Stop => cmd_stop(),
         Commands::Status => cmd_status(),
+        Commands::Reset => cmd_reset(),
         Commands::Report { period } => cmd_report(period),
     }
 }
