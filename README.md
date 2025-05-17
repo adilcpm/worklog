@@ -61,6 +61,12 @@ worklog report weekly
 worklog report monthly
 ```
 
+### Show log file location
+
+```bash
+worklog path
+```
+
 ## Data Storage
 
 Worklog stores its data in your system's local data directory:

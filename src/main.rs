@@ -43,6 +43,8 @@ enum Commands {
     Status,
     /// Reset (discard) the current activity without logging it
     Reset,
+    /// Show the location of the log file
+    Path,
     /// Show a report – default: daily
     Report {
         #[arg(value_parser = ["daily", "weekly", "monthly"], default_value = "daily")]
@@ -116,6 +118,10 @@ fn cmd_reset() {
     }
 }
 
+fn cmd_path() {
+    println!("{}", log_file().display());
+}
+
 fn within_period(ts: i64, period: &str) -> bool {
     let dt = Utc.timestamp_opt(ts, 0).single().unwrap();
     let now = Utc::now();
@@ -170,6 +176,7 @@ fn main() {
         Commands::Stop => cmd_stop(),
         Commands::Status => cmd_status(),
         Commands::Reset => cmd_reset(),
+        Commands::Path => cmd_path(),
         Commands::Report { period } => cmd_report(period),
     }
 }
