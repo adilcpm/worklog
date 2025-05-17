@@ -39,6 +39,8 @@ enum Commands {
     Start { tag: String },
     /// Stop the currently running activity
     Stop,
+    /// Show current activity status
+    Status,
     /// Show a report – default: daily
     Report {
         #[arg(value_parser = ["daily", "weekly", "monthly"], default_value = "daily")]
@@ -85,6 +87,18 @@ fn cmd_stop() {
             println!("Stopped {}.", tag);
         }
         None => eprintln!("No running session."),
+    }
+}
+
+fn cmd_status() {
+    let log = load_log();
+    match log.iter().find(|s| s.end.is_none()) {
+        Some(s) => {
+            let duration = Utc::now().timestamp() - s.start;
+            let hours = duration as f64 / 3600.0;
+            println!("Currently working on: {} ({:.2}h)", s.tag, hours);
+        }
+        None => println!("No active session."),
     }
 }
 
@@ -140,6 +154,7 @@ fn main() {
     match cli.command {
         Commands::Start { tag } => cmd_start(tag),
         Commands::Stop => cmd_stop(),
+        Commands::Status => cmd_status(),
         Commands::Report { period } => cmd_report(period),
     }
 }
