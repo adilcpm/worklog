@@ -3,7 +3,9 @@ use clap::{Parser, Subcommand};
 use comfy_table::{Cell, Table};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
+use std::io::{self, Write};
 use std::{fs, path::PathBuf};
+use std::{thread, time::Duration as StdDuration};
 
 /// Location helper – ~/.local/share/worklog/log.json (Linux) or OS‑equivalent
 fn log_file() -> PathBuf {
@@ -66,19 +68,48 @@ fn save_log(log: &[Session]) {
     fs::write(log_file(), data).expect("write log");
 }
 
+fn format_duration(seconds: i64) -> String {
+    let hours = seconds / 3600;
+    let minutes = (seconds % 3600) / 60;
+    let secs = seconds % 60;
+    format!("{:02}:{:02}:{:02}", hours, minutes, secs)
+}
+
 fn cmd_start(tag: String) {
     let mut log = load_log();
     if log.iter().any(|s| s.end.is_none()) {
         eprintln!("Existing session still running. Stop it first.");
         return;
     }
+
+    // Create and save the session immediately
+    let start_time = Utc::now().timestamp();
     log.push(Session {
         tag: tag.clone(),
-        start: Utc::now().timestamp(),
+        start: start_time,
         end: None,
     });
     save_log(&log);
-    println!("Started {}.", tag);
+
+    // Clear screen and show initial message
+    print!("\x1B[2J\x1B[1;1H"); // Clear screen and move cursor to top
+    println!("🚀 Started: {}", tag);
+    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    println!("\n Press Ctrl+C to exit display (activity will continue running)\n");
+
+    // Display running timer until interrupted
+    loop {
+        let duration = Utc::now().timestamp() - start_time;
+        print!("\r\x1B[K"); // Clear line
+        println!(
+            "\r⏱  Time elapsed: \x1B[1;32m{}\x1B[0m",
+            format_duration(duration)
+        );
+        print!("\x1B[1A"); // Move cursor up one line
+        io::stdout().flush().unwrap();
+
+        thread::sleep(StdDuration::from_secs(1));
+    }
 }
 
 fn cmd_stop() {

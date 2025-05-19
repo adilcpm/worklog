@@ -30,6 +30,8 @@ cargo install --path .
 worklog start "project-x"
 ```
 
+This will start tracking the activity and display a running timer. You can press Ctrl+C to exit the display - the activity will continue running in the background. Use `worklog status` to check on it later, or `worklog stop` to end it.
+
 ### Stop the current activity
 
 ```bash
