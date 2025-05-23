@@ -47,6 +47,8 @@ enum Commands {
     Reset,
     /// Show the location of the log file
     Path,
+    /// Log custom hours for a task (e.g., "worklog log mytask 2.5")
+    Log { tag: String, hours: f64 },
     /// Show a report – default: daily
     Report {
         #[arg(value_parser = ["daily", "weekly", "monthly"], default_value = "daily")]
@@ -153,6 +155,27 @@ fn cmd_path() {
     println!("{}", log_file().display());
 }
 
+fn cmd_log(tag: String, hours: f64) {
+    if hours <= 0.0 {
+        eprintln!("Hours must be positive.");
+        return;
+    }
+
+    let mut log = load_log();
+    let now = Utc::now().timestamp();
+    let duration_seconds = (hours * 3600.0) as i64;
+    let start_time = now - duration_seconds;
+
+    log.push(Session {
+        tag: tag.clone(),
+        start: start_time,
+        end: Some(now),
+    });
+
+    save_log(&log);
+    println!("Logged {:.2} hours for '{}'.", hours, tag);
+}
+
 fn within_period(ts: i64, period: &str) -> bool {
     let dt = Utc.timestamp_opt(ts, 0).single().unwrap();
     let now = Utc::now();
@@ -208,6 +231,7 @@ fn main() {
         Commands::Status => cmd_status(),
         Commands::Reset => cmd_reset(),
         Commands::Path => cmd_path(),
+        Commands::Log { tag, hours } => cmd_log(tag, hours),
         Commands::Report { period } => cmd_report(period),
     }
 }

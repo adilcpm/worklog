@@ -50,6 +50,14 @@ worklog status
 worklog reset
 ```
 
+### Log custom hours for a task
+
+```bash
+worklog log "project-x" 2.5
+```
+
+This allows you to add completed work sessions with custom durations without having to start/stop them.
+
 ### Generate reports
 
 ```bash
